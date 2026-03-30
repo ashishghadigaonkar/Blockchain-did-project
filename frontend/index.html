@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DID Identity — Decentralized Identity System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Background grid -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">DID<span class="accent">Chain</span></span>
+    </div>
+    <nav class="nav-pills">
+      <a href="#dashboard" class="pill hidden" id="navDashboard">Dashboard</a>
+      <a href="#register"  class="pill active">Register</a>
+      <a href="#lookup"    class="pill">Lookup</a>
+      <a href="#about"     class="pill">About</a>
+    </nav>
+    <button id="connectBtn" class="btn-connect">
+      <span class="dot"></span>
+      <span id="connectLabel">Connect Wallet</span>
+    </button>
+  </header>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="hero-badge">W3C DID · Sepolia Testnet · IPFS</div>
+    <h1 class="hero-title">Your Identity,<br /><em>Your Keys.</em></h1>
+    <p class="hero-sub">
+      Register a self-sovereign digital identity on Ethereum.<br />
+      Only cryptographic hashes live on-chain — never your personal data.
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><span id="statIdentities">—</span><label>Identities</label></div>
+      <div class="stat"><span id="statNetwork">—</span><label>Network</label></div>
+      <div class="stat"><span id="statBlock">—</span><label>Block</label></div>
+    </div>
+  </section>
+
+  <!-- ── Wallet banner ── -->
+  <div id="walletBanner" class="wallet-banner hidden">
+    <div class="wallet-info">
+      <span class="wallet-dot"></span>
+      <span id="walletAddress">0x…</span>
+    </div>
+    <div id="walletStatus" class="wallet-status"></div>
+  </div>
+
+  <!-- ── Main Content ── -->
+  <main class="main-grid">
+
+    <!-- Dashboard Panel (Hidden till connected) -->
+    <section id="dashboard" class="card card--dashboard hidden">
+      <div class="card-header dashboard-header">
+        <div style="display:flex; align-items:center; gap:0.8rem;">
+          <span class="card-icon">🪪</span>
+          <h2>My Identity Dashboard</h2>
+        </div>
+        <div id="dashStatusBadge" class="id-badge status-none">Not Registered</div>
+      </div>
+      
+      <div class="id-grid">
+        <div class="id-field"><span>Name</span><strong id="dashName">—</strong></div>
+        <div class="id-field"><span>Email</span><strong id="dashEmail">—</strong></div>
+        <div class="id-field"><span>Institution</span><strong id="dashCollege">—</strong></div>
+        <div class="id-field"><span>Student ID</span><strong id="dashId">—</strong></div>
+        <div class="id-field"><span>Created At</span><strong id="dashCreated">—</strong></div>
+        <div class="id-field"><span>Updated At</span><strong id="dashUpdated">—</strong></div>
+        <div class="id-field full-width">
+          <span>IPFS CID</span>
+          <code id="dashCid" class="copyable">—</code>
+        </div>
+      </div>
+
+      <div class="dashboard-actions">
+        <button id="viewBtn" class="btn-primary" disabled>
+          <span class="btn-icon">👁️</span> View My Identity
+        </button>
+        <button id="revokeBtn" class="btn-danger hidden">
+          <span class="btn-icon">⚠️</span> Revoke Identity
+        </button>
+      </div>
+    </section>
+
+    <!-- Register Panel -->
+    <section id="register" class="card card--register">
+      <div class="card-header">
+        <span class="card-icon">🪪</span>
+        <h2>Register Identity</h2>
+      </div>
+
+      <div class="form-group">
+        <label>Full Name</label>
+        <input id="inputName"    type="text"  placeholder="e.g. Arjun Sharma" />
+      </div>
+      <div class="form-group">
+        <label>College / Institution</label>
+        <input id="inputCollege" type="text"  placeholder="e.g. IIT Bombay" />
+      </div>
+      <div class="form-group">
+        <label>Student / Employee ID</label>
+        <input id="inputId"      type="text"  placeholder="e.g. 22CS1045" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input id="inputEmail"   type="email" placeholder="you@example.com" />
+      </div>
+
+      <!-- IPFS Hash override (advanced) -->
+      <details class="advanced">
+        <summary>Advanced — paste your own IPFS CID</summary>
+        <div class="form-group">
+          <label>IPFS CID (optional)</label>
+          <input id="inputIpfs" type="text" placeholder="Qm… or bafyrei…" />
+        </div>
+        <p class="help-text">
+          If left blank, a demo CID will be generated from your profile data.
+          In production connect to <strong>Pinata</strong> via their API.
+        </p>
+      </details>
+
+      <button id="registerBtn" class="btn-primary" disabled>
+        <span class="btn-icon">⬡</span> Register on Blockchain
+      </button>
+
+      <div id="registerStatus" class="status-box hidden"></div>
+    </section>
+
+    <!-- Lookup Panel -->
+    <section id="lookup" class="card card--lookup">
+      <div class="card-header">
+        <span class="card-icon">🔍</span>
+        <h2>Lookup Identity</h2>
+      </div>
+
+      <div class="form-group">
+        <label>Ethereum Address</label>
+        <input id="lookupAddress" type="text" placeholder="0x…" />
+      </div>
+      <button id="lookupBtn" class="btn-secondary" disabled>
+        Query Registry
+      </button>
+
+      <div id="lookupResult" class="result-card hidden">
+        <div class="result-row"><span>IPFS Hash</span><code id="rHash">—</code></div>
+        <div class="result-row"><span>Registered</span><span id="rCreated">—</span></div>
+        <div class="result-row"><span>Updated</span><span id="rUpdated">—</span></div>
+        <div class="result-row"><span>Version</span><span id="rVersion">—</span></div>
+        <div class="result-row"><span>Status</span><span id="rStatus">—</span></div>
+      </div>
+    </section>
+
+    <!-- ZKP Concept Card -->
+    <section class="card card--zkp">
+      <div class="card-header">
+        <span class="card-icon">🔐</span>
+        <h2>Zero-Knowledge Proof</h2>
+      </div>
+      <p class="card-desc">
+        Prove a claim about your identity <em>without revealing the underlying data</em>.
+      </p>
+      <div class="zkp-demo">
+        <div class="zkp-claim">
+          <span class="zkp-label">Claim</span>
+          <span>I am over 18 years old</span>
+        </div>
+        <div class="zkp-arrow">→</div>
+        <div class="zkp-proof">
+          <span class="zkp-label">ZK Proof</span>
+          <code>π = Groth16(w, x)</code>
+        </div>
+        <div class="zkp-arrow">→</div>
+        <div class="zkp-verify">
+          <span class="zkp-label">Verified</span>
+          <span class="verified-badge">✓ True</span>
+        </div>
+      </div>
+      <p class="help-text">
+        Your actual birth date is <strong>never disclosed</strong>. Only the proof is sent to the verifier.
+        Uses <a href="https://docs.circom.io/" target="_blank">Circom + SnarkJS</a> in production.
+      </p>
+    </section>
+
+    <!-- Architecture Card -->
+    <section id="about" class="card card--arch">
+      <div class="card-header">
+        <span class="card-icon">🗺️</span>
+        <h2>Architecture</h2>
+      </div>
+      <div class="arch-flow">
+        <div class="arch-node">
+          <div class="arch-icon">👤</div>
+          <span>User</span>
+        </div>
+        <div class="arch-line"><span>Signs tx</span></div>
+        <div class="arch-node">
+          <div class="arch-icon">🦊</div>
+          <span>MetaMask</span>
+        </div>
+        <div class="arch-line"><span>Web3.js</span></div>
+        <div class="arch-node">
+          <div class="arch-icon">⛓️</div>
+          <span>Sepolia</span>
+        </div>
+      </div>
+      <div class="arch-flow" style="margin-top:1rem">
+        <div class="arch-node">
+          <div class="arch-icon">📄</div>
+          <span>Profile JSON</span>
+        </div>
+        <div class="arch-line"><span>Pinata</span></div>
+        <div class="arch-node">
+          <div class="arch-icon">🌐</div>
+          <span>IPFS</span>
+        </div>
+        <div class="arch-line"><span>CID stored</span></div>
+        <div class="arch-node">
+          <div class="arch-icon">📑</div>
+          <span>Contract</span>
+        </div>
+      </div>
+      <div class="key-benefits">
+        <div class="benefit"><span>🔒</span><div><strong>Privacy</strong><p>No PII on-chain</p></div></div>
+        <div class="benefit"><span>⛓️</span><div><strong>Immutability</strong><p>Tamper-proof registry</p></div></div>
+        <div class="benefit"><span>🔗</span><div><strong>Interoperable</strong><p>W3C DID standard</p></div></div>
+      </div>
+    </section>
+
+    <!-- Event Feed -->
+    <section class="card card--events">
+      <div class="card-header">
+        <span class="card-icon">⚡</span>
+        <h2>Live Activity Feed</h2>
+      </div>
+      <div id="eventFeed" class="event-feed">
+        <div class="event-empty">Waiting for on-chain events...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Web3.js v1.x CDN (UMD build — exposes global Web3 constructor) -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.4/dist/web3.min.js"></script>
+  <script>
+    // Fallback: if jsDelivr failed, load from unpkg
+    if (typeof Web3 === "undefined") {
+      document.write('<script src="https://unpkg.com/web3@1.10.4/dist/web3.min.js"><\/script>');
+    }
+  </script>
+  <script src="js/contract.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
