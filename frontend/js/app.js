@@ -107,8 +107,8 @@ async function uploadToPinata(profileData) {
   const url = "https://api.pinata.cloud/pinning/pinJSONToIPFS";
   const headers = {
     "Content-Type": "application/json",
-    "pinata_api_key": "5200b2b731a77dc1ff52",
-    "pinata_secret_api_key": "222cd647a45f4c065174b78e1ea6f66ddf20e1030063747ffb94df5ce2e47543"
+    "pinata_api_key": "API",
+    "pinata_secret_api_key": "Secret_key"
   };
 
   try {
