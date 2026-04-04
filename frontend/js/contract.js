@@ -9,7 +9,7 @@
 // ── Set to true ONLY after you have deployed DIDRegistry.sol ──
 const IS_DEPLOYED = true;
 
-const CONTRACT_ADDRESS = "0x196Bd2dFc770D0D484F4A5EF57a04E64678ba838";
+const CONTRACT_ADDRESS = "Your_address";
 //  ↑ Replace with your actual Sepolia deployment address from Remix
 
 const CONTRACT_ABI = [
