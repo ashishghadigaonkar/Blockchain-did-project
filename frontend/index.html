@@ -41,9 +41,21 @@
       Only cryptographic hashes live on-chain — never your personal data.
     </p>
     <div class="hero-stats">
-      <div class="stat"><span id="statIdentities">—</span><label>Identities</label></div>
-      <div class="stat"><span id="statNetwork">—</span><label>Network</label></div>
-      <div class="stat"><span id="statBlock">—</span><label>Block</label></div>
+      <div class="stat" id="statIdParent">
+        <span id="statIdentities">—</span>
+        <div class="skeleton skeleton-stat"></div>
+        <label>Identities</label>
+      </div>
+      <div class="stat" id="statNetParent">
+        <span id="statNetwork">—</span>
+        <div class="skeleton skeleton-stat"></div>
+        <label>Network</label>
+      </div>
+      <div class="stat" id="statBlockParent">
+        <span id="statBlock">—</span>
+        <div class="skeleton skeleton-stat"></div>
+        <label>Block</label>
+      </div>
     </div>
   </section>
 
@@ -67,20 +79,22 @@
           <h2>My Identity Dashboard</h2>
         </div>
         <div id="dashStatusBadge" class="id-badge status-none">Not Registered</div>
+        <div class="skeleton skeleton-badge" id="dashStatusSkeleton" style="visibility:hidden;"></div>
       </div>
       
       <div class="id-grid">
-        <div class="id-field"><span>Name</span><strong id="dashName">—</strong></div>
-        <div class="id-field"><span>Email</span><strong id="dashEmail">—</strong></div>
-        <div class="id-field"><span>Institution</span><strong id="dashCollege">—</strong></div>
-        <div class="id-field"><span>Student ID</span><strong id="dashId">—</strong></div>
-        <div class="id-field"><span>Created At</span><strong id="dashCreated">—</strong></div>
-        <div class="id-field"><span>Updated At</span><strong id="dashUpdated">—</strong></div>
-        <div class="id-field"><span>Trust Score</span><strong id="dashScore">0/100</strong></div>
-        <div class="id-field"><span>DID Tokens</span><strong id="dashBalance">0 DID</strong></div>
-        <div class="id-field full-width">
+        <div class="id-field" id="dashNameParent"><span>Name</span><strong id="dashName">—</strong><div class="skeleton skeleton-text"></div></div>
+        <div class="id-field" id="dashEmailParent"><span>Email</span><strong id="dashEmail">—</strong><div class="skeleton skeleton-text"></div></div>
+        <div class="id-field" id="dashCollegeParent"><span>Institution</span><strong id="dashCollege">—</strong><div class="skeleton skeleton-text"></div></div>
+        <div class="id-field" id="dashIdParent"><span>Student ID</span><strong id="dashId">—</strong><div class="skeleton skeleton-text"></div></div>
+        <div class="id-field" id="dashCreatedParent"><span>Created At</span><strong id="dashCreated">—</strong><div class="skeleton skeleton-text"></div></div>
+        <div class="id-field" id="dashUpdatedParent"><span>Updated At</span><strong id="dashUpdated">—</strong><div class="skeleton skeleton-text"></div></div>
+        <div class="id-field" id="dashScoreParent"><span>Trust Score</span><strong id="dashScore">0/100</strong><div class="skeleton skeleton-text"></div></div>
+        <div class="id-field" id="dashBalanceParent"><span>DID Tokens</span><strong id="dashBalance">0 DID</strong><div class="skeleton skeleton-text"></div></div>
+        <div class="id-field full-width" id="dashCidParent">
           <span>IPFS CID</span>
           <code id="dashCid" class="copyable">—</code>
+          <div class="skeleton skeleton-text"></div>
         </div>
       </div>
 
@@ -154,11 +168,11 @@
       </button>
 
       <div id="lookupResult" class="result-card hidden">
-        <div class="result-row"><span>IPFS Hash</span><code id="rHash">—</code></div>
-        <div class="result-row"><span>Registered</span><span id="rCreated">—</span></div>
-        <div class="result-row"><span>Updated</span><span id="rUpdated">—</span></div>
-        <div class="result-row"><span>Version</span><span id="rVersion">—</span></div>
-        <div class="result-row"><span>Status</span><span id="rStatus">—</span></div>
+        <div class="result-row" id="rHashParent"><span>IPFS Hash</span><code id="rHash">—</code><div class="skeleton skeleton-text"></div></div>
+        <div class="result-row" id="rCreatedParent"><span>Registered</span><span id="rCreated">—</span><div class="skeleton skeleton-text"></div></div>
+        <div class="result-row" id="rUpdatedParent"><span>Updated</span><span id="rUpdated">—</span><div class="skeleton skeleton-text"></div></div>
+        <div class="result-row" id="rVersionParent"><span>Version</span><span id="rVersion">—</span><div class="skeleton skeleton-text"></div></div>
+        <div class="result-row" id="rStatusParent"><span>Status</span><span id="rStatus">—</span><div class="skeleton skeleton-text"></div></div>
       </div>
     </section>
 

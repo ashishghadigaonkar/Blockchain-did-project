@@ -2,6 +2,9 @@
 
 Allow your users to sign in using their **DIDChain Identity**. This ensures your users have a verified on-chain identity and a trust score.
 
+> [!TIP]
+> For a live interactive version of this guide, visit the **[Professional Docs](/docs)** route on your deployed instance.
+
 ## 1. Add the Button
 Copy and paste this HTML snippet into your website:
 
@@ -41,3 +44,7 @@ if (result.valid) {
 1. **Verified Users**: Every user must have a registered identity on the Sepolia blockchain.
 2. **Reputation-based Access**: You can block users with low "Trust Scores".
 3. **No Passwords**: Users log in with their private keys via MetaMask.
+
+## Next Steps
+- Try the **[Live Demo](https://did-blockchain.onrender.com/demo/index.html)**.
+- Explore the **[Full API Docs](https://did-blockchain.onrender.com/docs)**.

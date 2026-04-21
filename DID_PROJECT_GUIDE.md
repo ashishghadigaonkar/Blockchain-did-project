@@ -30,6 +30,11 @@ DIDChain is a self-sovereign digital identity platform built on the **Ethereum S
 - **Real-Time events**: Uses Web3.js event listeners to pulse with live blockchain activity.
 - **Activity Log**: See a scrolling feed of every `Registration`, `Update`, and `Revocation` happening across the entire network.
 
+### 6. Identity Provider (OIDC-Bridge)
+- **Authorize Endpoint**: External apps can link to `/authorize` to prompt users for a secure wallet signature.
+- **JWT Issuance**: The system issues a cryptographically signed JSON Web Token (JWT) containing the user's DID and Trust Score.
+- **Token Verification**: Developers can use the `/verify-token` API to ensure the authenticity of the user's identity.
+
 ---
 
 ## 🛠️ Technical Architecture

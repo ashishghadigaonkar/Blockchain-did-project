@@ -29,10 +29,11 @@ The system ensures that no **Personally Identifiable Information (PII)** is ever
 
 - ✅ **Self-Sovereign Identity (DID)**: Complete ownership of your digital identifier.
 - ✅ **Decentralized Storage**: Profile data is stored on IPFS, represented by a permanent CID.
+- ✅ **Sign-In with DIDChain**: OIDC-like identity provider for external websites.
 - ✅ **Soulbound Reward Tokens (DID)**: Non-transferable ERC-20 tokens that act as reputation markers.
 - ✅ **Trust Score Algorithm**: Real-time on-chain calculation of user reliability.
-- ✅ **Secure Backend Proxy**: Protects sensitive Pinata API keys from client-side exposure.
-- ✅ **MetaMask Integration**: Secure, one-click authentication and transaction signing.
+- ✅ **Secure Backend Proxy**: Protects sensitive Pinata API keys and handles JWT token issuance.
+- ✅ **Professional Docs & Demo**: Built-in developer guide and live integration example.
 
 ---
 
@@ -42,14 +43,14 @@ The project follows a **Hybrid Web3 Architecture** to balance security, privacy,
 
 ```mermaid
 graph TD
-    User((User)) -->|MetaMask| Frontend[Vanilla JS Frontend]
-    Frontend -->|POST /upload| Backend[Node.js Express Proxy]
-    Backend -->|Secure Headers| Pinata[Pinata IPFS Service]
-    Pinata -->|IPFS Hash / CID| Backend
-    Backend -->|CID| Frontend
-    Frontend -->|Register/Update| Sepolia[Ethereum Sepolia Contract]
-    Sepolia -->|Reward Tokens| User
-    Sepolia -->|On-chain Verification| Verifier((Verifier))
+    User((User)) -->|Auth/Sign| Frontend[DIDChain Dashboard]
+    ExternalApp[Third-Party Site] -->|Redirect| AuthPage[/authorize]
+    AuthPage -->|Sign Message| User
+    User -->|Verified| AuthPage
+    AuthPage -->|Issue JWT| ExternalApp
+    ExternalApp -->|POST /verify-token| Backend[Node.js Backend]
+    Backend -->|Check Contract| Sepolia[Ethereum Sepolia]
+    Backend -->|Verify Token| ExternalApp
 ```
 
 ### Role of Components:
@@ -159,9 +160,9 @@ npm run dev
 
 1. **Connect Wallet**: Click "Connect Wallet" and switch to Sepolia.
 2. **Register**: Fill the form to create your decentralized identity.
-3. **Dashboard**: View your **Trust Score** (reputation) and **DID Balance** (tokens) in real-time.
-4. **Lookup**: Paste any address in the search bar to verify another user's identity.
-5. **Manage**: Update your profile or revoke your identity if necessary.
+3. **Dashboard**: View your **Trust Score** and **DID Balance** with professional **Skeleton Loaders**.
+4. **Integrate**: Visit the **[Developer Guide](/docs)** to add "Sign-In with DIDChain" to your own site.
+5. **Test Demo**: Check out the **[Demo External App](/demo/index.html)**.
 
 ---
 

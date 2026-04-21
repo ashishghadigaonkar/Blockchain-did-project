@@ -70,6 +70,23 @@ function clearBusy(btn) {
   // Don't auto-enable, let the caller decide based on network state
 }
 
+function toggleSkeletons(parentIds, isLoading) {
+  parentIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (isLoading) {
+      el.classList.add("loading-data");
+      // For the badge specifically which uses visibility check
+      const skel = el.querySelector(".skeleton-badge");
+      if (skel) skel.style.visibility = "visible";
+    } else {
+      el.classList.remove("loading-data");
+      const skel = el.querySelector(".skeleton-badge");
+      if (skel) skel.style.visibility = "hidden";
+    }
+  });
+}
+
 function shortAddr(addr) {
   return addr.slice(0, 6) + "…" + addr.slice(-4);
 }
@@ -282,12 +299,18 @@ function requireNetwork() {
   return true;
 }
 
+const DASHBOARD_METADATA_SKELETONS = ["dashStatusSkeleton", "dashScoreParent", "dashBalanceParent"];
+const DASHBOARD_PROFILE_SKELETONS = ["dashNameParent", "dashEmailParent", "dashCollegeParent", "dashIdParent", "dashCreatedParent", "dashUpdatedParent", "dashCidParent"];
+
 async function checkExistingIdentity() {
   if (!contract || !userAccount) return;
   if (!IS_DEPLOYED) {
     walletStatus.textContent += " · Demo mode (contract not deployed)";
     return;
   }
+  
+  toggleSkeletons(DASHBOARD_METADATA_SKELETONS, true);
+  
   try {
     // 1. Get identity active status
     userHasIdentity = await contract.methods.hasIdentity(userAccount).call();
@@ -322,6 +345,8 @@ async function checkExistingIdentity() {
   } catch (err) {
     walletStatus.textContent += " · Could not check identity";
     console.error("checkExistingIdentity error:", parseRevertReason(err));
+  } finally {
+    toggleSkeletons(DASHBOARD_METADATA_SKELETONS, false);
   }
 }
 
@@ -359,6 +384,8 @@ async function loadContractData() {
     document.getElementById("statIdentities").textContent = "Demo";
     return;
   }
+  const statSkeletons = ["statIdParent", "statNetParent", "statBlockParent"];
+  toggleSkeletons(statSkeletons, true);
   try {
     const total = await contract.methods.totalIdentities().call();
     document.getElementById("statIdentities").textContent = total.toString();
@@ -366,6 +393,8 @@ async function loadContractData() {
     document.getElementById("statBlock").textContent = "#" + blockNum.toString();
   } catch (err) {
     console.error("loadContractData error:", err.message);
+  } finally {
+    toggleSkeletons(["statIdParent", "statNetParent", "statBlockParent"], false);
   }
 }
 
@@ -417,6 +446,8 @@ function updateDashboardStatus(status, cid = "", created = "0", updated = "0", s
 async function refreshProfileDisplay(forcedCid = null) {
   if (!userHasIdentity && !forcedCid) return;
   
+  toggleSkeletons(DASHBOARD_PROFILE_SKELETONS, true);
+  
   try {
     let cid = forcedCid;
     
@@ -451,6 +482,8 @@ async function refreshProfileDisplay(forcedCid = null) {
   } catch (err) {
     console.error("refreshProfileDisplay error:", err);
     throw err;
+  } finally {
+    toggleSkeletons(DASHBOARD_PROFILE_SKELETONS, false);
   }
 }
 
@@ -606,6 +639,10 @@ lookupBtn.addEventListener("click", async () => {
     setStatus(registerStatus, "", "loading"); // clear old status silently
     lookupResult.classList.add("hidden");     // hide stale results
 
+    const lookupSkeletons = ["rHashParent", "rCreatedParent", "rUpdatedParent", "rVersionParent", "rStatusParent"];
+    lookupResult.classList.remove("hidden");
+    toggleSkeletons(lookupSkeletons, true);
+
     const isRegistered = await contract.methods.hasIdentity(addr).call();
 
     if (!isRegistered) {
@@ -642,6 +679,8 @@ lookupBtn.addEventListener("click", async () => {
     const reason = parseRevertReason(err);
     showToast("❌ Lookup failed: " + reason);
     console.error("Lookup error:", err);
+  } finally {
+    toggleSkeletons(["rHashParent", "rCreatedParent", "rUpdatedParent", "rVersionParent", "rStatusParent"], false);
   }
 });
 
