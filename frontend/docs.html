@@ -185,9 +185,11 @@
     </a>
     <nav class="sidebar-nav">
       <a href="#introduction" class="nav-item active">Introduction</a>
-      <a href="#add-button" class="nav-item">1. Add Button</a>
-      <a href="#callback" class="nav-item">2. Handle Callback</a>
-      <a href="#verify-token" class="nav-item">3. Verify Token</a>
+      <a href="#prerequisites" class="nav-item">1. Prerequisites</a>
+      <a href="#registration" class="nav-item">2. Registration</a>
+      <a href="#add-button" class="nav-item">3. Add Button</a>
+      <a href="#callback" class="nav-item">4. Handle Callback</a>
+      <a href="#verify-token" class="nav-item">5. Verify Token</a>
       <a href="#api-reference" class="nav-item">API Reference</a>
     </nav>
     <div class="sidebar-footer">
@@ -206,8 +208,44 @@
       </p>
     </section>
 
+    <section id="prerequisites">
+      <h2><span class="step-badge">1</span>Prerequisites</h2>
+      <p>Before using DIDChain, you and your users need a digital wallet and tokens to interact with the Sepolia blockchain.</p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px;">
+        <div style="background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-docs);">
+          <h3 style="margin-top: 0; color: white;">A. Create a Wallet</h3>
+          <p style="font-size: 14px;">Download <strong>MetaMask</strong>, the industry-standard wallet, as a browser extension.</p>
+          <a href="https://metamask.io/download/" target="_blank" style="color: var(--accent-docs); font-size: 14px; text-decoration: none; font-weight: 600;">Download MetaMask →</a>
+        </div>
+        <div style="background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-docs);">
+          <h3 style="margin-top: 0; color: white;">B. Get Sepolia ETH</h3>
+          <p style="font-size: 14px;">You need free "Testnet ETH" to pay for blockchain gas fees. Use a faucet to get some.</p>
+          <a href="https://sepoliafaucet.com/" target="_blank" style="color: var(--accent-docs); font-size: 14px; text-decoration: none; font-weight: 600;">Get Free ETH →</a>
+        </div>
+      </div>
+      <p style="margin-top: 20px; font-size: 14px; color: #ffcc00; background: rgba(255, 204, 0, 0.1); padding: 12px; border-radius: 8px;">
+        <strong>Note:</strong> Make sure to switch your MetaMask network to <strong>Sepolia Test Network</strong>.
+      </p>
+    </section>
+
+    <section id="registration">
+      <h2><span class="step-badge">2</span>Identity Registration</h2>
+      <p>To use "Sign-In with DIDChain", your users must first have a registered identity on our platform.</p>
+      
+      <div style="background: var(--card-bg); padding: 24px; border-radius: 12px; border: 1px solid var(--border-docs);">
+        <ol style="color: var(--text-muted); line-height: 1.8; font-size: 15px;">
+          <li>Visit the <a href="/" target="_blank" style="color: var(--accent-docs);">DIDChain Dashboard</a>.</li>
+          <li>Fill in the profile form (Name, Email, Institution).</li>
+          <li>Click <strong>"Register on Blockchain"</strong> and approve the MetaMask transaction.</li>
+          <li>Wait for confirmation. Once registered, your user now has a <strong>DID</strong> and a <strong>Trust Score</strong>!</li>
+        </ol>
+      </div>
+      <p style="margin-top: 16px;">After registration, the user is now ready to sign in to any third-party app integrated with DIDChain.</p>
+    </section>
+
     <section id="add-button">
-      <h2><span class="step-badge">1</span>Add the Button</h2>
+      <h2><span class="step-badge">3</span>Add the Button</h2>
       <p>Include our professional CSS and the authorization link in your login page.</p>
       
       <div class="code-container">
@@ -234,7 +272,7 @@
     </section>
 
     <section id="callback">
-      <h2><span class="step-badge">2</span>Handle the Callback</h2>
+      <h2><span class="step-badge">4</span>Handle the Callback</h2>
       <p>After the user approves the signature, we redirect them back to your <code>redirect_uri</code> with a token.</p>
       
       <div class="code-container">
@@ -246,8 +284,11 @@ https://your-site.com/callback?did_token=JWT_TOKEN_HERE&amp;address=0x...
     </section>
 
     <section id="verify-token">
-      <h2><span class="step-badge">3</span>Verify the Token (Backend)</h2>
-      <p>To prevent spoofing, your backend must verify the token using our endpoint.</p>
+      <h2><span class="step-badge">5</span>Verify the Token (Backend)</h2>
+      <p>
+        <strong>Crucial Security Step:</strong> After receiving the token on the frontend, you must never trust it immediately. 
+        Your backend should send the token to our verification endpoint to ensure it was actually signed by DIDChain and hasn't been tampered with.
+      </p>
 
       <div class="code-container">
         <button class="copy-btn" onclick="copyCode('verify-js')">Copy</button>
