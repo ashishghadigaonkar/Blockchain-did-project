@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integration Guide — DIDChain Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/did-button.css">
+  <style>
+    :root {
+      --bg-docs: #0a0c10;
+      --sidebar-bg: #111418;
+      --card-bg: #161b22;
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --accent-docs: #58a6ff;
+      --border-docs: #30363d;
+      --code-bg: #0d1117;
+    }
+
+    body {
+      background: var(--bg-docs);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border-docs);
+      padding: 40px 20px;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      text-decoration: none;
+      color: white;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-item {
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background: rgba(88, 166, 255, 0.1);
+      color: var(--accent-docs);
+    }
+
+    .sidebar-footer {
+        margin-top: auto;
+        padding-top: 40px;
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    /* Main Content */
+    .main-docs {
+      margin-left: 280px;
+      flex: 1;
+      padding: 60px 80px;
+      max-width: 900px;
+    }
+
+    section {
+      margin-bottom: 80px;
+      scroll-margin-top: 60px;
+    }
+
+    h1 { font-size: 40px; margin-bottom: 16px; font-weight: 800; }
+    h2 { font-size: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border-docs); padding-bottom: 12px; }
+    p { line-height: 1.6; color: var(--text-muted); font-size: 16px; }
+
+    /* Code Blocks */
+    .code-container {
+      position: relative;
+      background: var(--code-bg);
+      border: 1px solid var(--border-docs);
+      border-radius: 12px;
+      margin: 24px 0;
+      padding: 20px;
+    }
+
+    pre {
+      margin: 0;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      overflow-x: auto;
+      color: #d1d5db;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-docs);
+      color: var(--text-muted);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .copy-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+    .copy-btn.copied { background: #238636; color: white; border-color: #238636; }
+
+    /* API Table */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+    }
+
+    .api-table th, .api-table td {
+      border: 1px solid var(--border-docs);
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    .api-table th { background: rgba(255,255,255,0.02); font-size: 14px; }
+    .api-table td { font-size: 14px; }
+
+    .method {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    .method-get { background: #2ea043; color: white; }
+    .method-post { background: #d29922; color: white; }
+
+    /* Steps */
+    .step-badge {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent-docs);
+      color: white;
+      text-align: center;
+      line-height: 24px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-right: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main-docs { margin-left: 0; padding: 40px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span style="font-size: 24px; color: var(--accent-docs)">⬡</span>
+      <span style="font-weight: 800; font-size: 20px; letter-spacing: -0.5px">DIDChain Docs</span>
+    </a>
+    <nav class="sidebar-nav">
+      <a href="#introduction" class="nav-item active">Introduction</a>
+      <a href="#add-button" class="nav-item">1. Add Button</a>
+      <a href="#callback" class="nav-item">2. Handle Callback</a>
+      <a href="#verify-token" class="nav-item">3. Verify Token</a>
+      <a href="#api-reference" class="nav-item">API Reference</a>
+    </nav>
+    <div class="sidebar-footer">
+        v1.0.0 · Mainnet Coming Soon
+    </div>
+  </aside>
+
+  <main class="main-docs">
+    
+    <section id="introduction">
+      <h1>Integration Guide</h1>
+      <p>
+        Allow your users to sign in using their <strong>DIDChain Identity</strong>. 
+        Instead of passwords, users authenticate using their digital wallet, providing you with a verified 
+        <strong>Web3 Identity</strong> and a <strong>Reputation Score</strong> directly from the blockchain.
+      </p>
+    </section>
+
+    <section id="add-button">
+      <h2><span class="step-badge">1</span>Add the Button</h2>
+      <p>Include our professional CSS and the authorization link in your login page.</p>
+      
+      <div class="code-container">
+        <button class="copy-btn" onclick="copyCode('btn-html')">Copy</button>
+<pre id="btn-html">
+&lt;!-- Include Styles --&gt;
+&lt;link rel="stylesheet" href="https://did-blockchain.onrender.com/css/did-button.css"&gt;
+
+&lt;!-- Sign In Button --&gt;
+&lt;a href="https://did-blockchain.onrender.com/authorize?redirect_uri=YOUR_URL" class="did-connect-button"&gt;
+  &lt;span class="did-icon"&gt;⬡&lt;/span&gt;
+  Sign in with DIDChain
+&lt;/a&gt;
+</pre>
+      </div>
+
+      <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px dashed var(--border-docs)">
+        <span style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 12px;">LIVE PREVIEW</span>
+        <a href="#" class="did-connect-button" style="pointer-events: none;">
+          <span class="did-icon">⬡</span>
+          Sign in with DIDChain
+        </a>
+      </div>
+    </section>
+
+    <section id="callback">
+      <h2><span class="step-badge">2</span>Handle the Callback</h2>
+      <p>After the user approves the signature, we redirect them back to your <code>redirect_uri</code> with a token.</p>
+      
+      <div class="code-container">
+<pre>
+https://your-site.com/callback?did_token=JWT_TOKEN_HERE&amp;address=0x...
+</pre>
+      </div>
+      <p>Extract the <code>did_token</code> from the URL query parameters to verify it in the next step.</p>
+    </section>
+
+    <section id="verify-token">
+      <h2><span class="step-badge">3</span>Verify the Token (Backend)</h2>
+      <p>To prevent spoofing, your backend must verify the token using our endpoint.</p>
+
+      <div class="code-container">
+        <button class="copy-btn" onclick="copyCode('verify-js')">Copy</button>
+<pre id="verify-js">
+const response = await fetch('https://did-blockchain.onrender.com/verify-token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ token: 'JWT_TOKEN_HERE' })
+});
+
+const result = await response.json();
+if (result.valid) {
+  // result.data contains address and score
+  console.log("Verified User:", result.data.sub);
+  console.log("Trust Score:", result.data.score);
+}
+</pre>
+      </div>
+    </section>
+
+    <section id="api-reference">
+      <h2>API Reference</h2>
+      
+      <table class="api-table">
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code style="color: var(--accent-docs)">/verify-token</code></td>
+            <td><span class="method method-post">POST</span></td>
+            <td>Verifies a JWT token issued by DIDChain.</td>
+          </tr>
+          <tr>
+            <td><code style="color: var(--accent-docs)">/score/:address</code></td>
+            <td><span class="method method-get">GET</span></td>
+            <td>Returns the trust score for a specific public address.</td>
+          </tr>
+          <tr>
+            <td><code style="color: var(--accent-docs)">/identity/:cid</code></td>
+            <td><span class="method method-get">GET</span></td>
+            <td>Fetches user meta-data from IPFS via CID.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <script>
+    function copyCode(id) {
+      const text = document.getElementById(id).innerText;
+      const btn = event.currentTarget;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerText = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // Nav highlighting
+    const sections = document.querySelectorAll('section');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= sectionTop - 100) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href').includes(current)) {
+          item.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

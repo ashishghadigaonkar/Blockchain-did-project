@@ -151,6 +151,14 @@ app.get('/score/:address', async (req, res) => {
 });
 
 /**
+ * @route GET /docs
+ * @desc Serve the professional integration guide
+ */
+app.get('/docs', (req, res) => {
+    res.sendFile(path.resolve(frontendPath, 'docs.html'));
+});
+
+/**
  * @route GET /authorize
  * @desc Serve the authorization page
  */
