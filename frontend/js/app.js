@@ -102,48 +102,42 @@ function parseRevertReason(err) {
   return raw || "Unknown error";
 }
 
-// ── Upload JSON to Pinata (IPFS) ──────────────────────────────
-async function uploadToPinata(profileData) {
-  const url = "https://api.pinata.cloud/pinning/pinJSONToIPFS";
-  const headers = {
-    "Content-Type": "application/json",
-    "pinata_api_key": "API",
-    "pinata_secret_api_key": "Secret_key"
-  };
+// ── Backend Configuration ──────────────────────────────────────
+const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5000' ? "http://localhost:5000" : "";
 
+// ── Upload JSON to IPFS via Backend Proxy ──────────────────────
+async function uploadToIPFS(profileData) {
   try {
-    const response = await fetch(url, {
+    const response = await fetch(`${BACKEND_URL}/upload`, {
       method: "POST",
-      headers: headers,
-      body: JSON.stringify({
-        pinataContent: profileData,
-        pinataMetadata: { name: `DIDProfile-${profileData.id}` }
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profileData)
     });
     
     if (!response.ok) {
-        throw new Error(`Pinata API error: ${response.statusText}`);
+        throw new Error(`Backend upload error: ${response.statusText}`);
     }
     
     const data = await response.json();
-    return data.IpfsHash;
+    return data.cid;
   } catch (error) {
-    console.error("Error uploading to Pinata:", error);
+    console.error("Error uploading to backend:", error);
     throw error;
   }
 }
 
-// ── Fetch JSON from Pinata Gateway ──────────────────────────────
-async function fetchFromPinata(cid) {
+// ── Fetch JSON from IPFS via Backend Proxy ──────────────────────
+async function fetchFromIPFS(cid) {
   try {
-    const response = await fetch(`https://gateway.pinata.cloud/ipfs/${cid}`);
+    const response = await fetch(`${BACKEND_URL}/identity/${cid}`);
     if (!response.ok) throw new Error("Failed to fetch IPFS data");
     return await response.json();
   } catch (error) {
-    console.error("Error fetching from Pinata:", error);
+    console.error("Error fetching from backend:", error);
     return null;
   }
 }
+
 
 // ── Connect MetaMask ───────────────────────────────────────────
 async function connectWallet() {
@@ -180,6 +174,12 @@ async function onAccountsChanged(accounts) {
   userAccount = accounts[0];
   web3     = new Web3(window.ethereum);
   contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+  
+  // Initialize Token Contract
+  if (TOKEN_CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
+    const tokenContract = new web3.eth.Contract(TOKEN_ABI, TOKEN_CONTRACT_ADDRESS);
+    window.tokenContract = tokenContract; // Attach to window for easy access
+  }
 
   // UI
   connectBtn.classList.add("connected");
@@ -205,6 +205,7 @@ async function onAccountsChanged(accounts) {
   }
   showToast("✓ Wallet connected: " + shortAddr(userAccount));
 }
+
 
 // Returns true if now on Sepolia, false otherwise.
 // Always updates isCorrectNetwork state and the wallet status UI.
@@ -288,28 +289,34 @@ async function checkExistingIdentity() {
     return;
   }
   try {
-    // hasIdentity only returns true if isActive == true
+    // 1. Get identity active status
     userHasIdentity = await contract.methods.hasIdentity(userAccount).call();
     
+    // 2. Fetch Reputation Score & Token Balance
+    const score = await fetchReputation(userAccount);
+    const balance = await fetchTokenBalance(userAccount);
+
+    // 3. Fetch full metadata (CID + timestamps) regardless of status
+    const idData = await contract.methods.getIdentity(userAccount).call();
+
     if (userHasIdentity) {
       userIsRevoked = false;
       walletStatus.textContent += " · ✓ Active";
       registerBtn.textContent  = "⬡ Update Identity";
-      updateDashboardStatus("active");
+      updateDashboardStatus("active", idData.ipfsHash, idData.createdAt, idData.updatedAt, score, balance);
     } else {
-      // Could be revoked or never registered. Check getIdentity.
-      const idData = await contract.methods.getIdentity(userAccount).call();
-      if (idData.ipfsHash && !idData.isActive) {
+      // Could be revoked or never registered.
+      if (idData.ipfsHash && idData.ipfsHash !== "") {
         userIsRevoked = true;
         walletStatus.textContent += " · ✗ Revoked";
         registerBtn.textContent  = "⬡ Register New Identity";
         registerBtn.disabled = false;
-        updateDashboardStatus("revoked", idData.ipfsHash, idData.createdAt, idData.updatedAt);
+        updateDashboardStatus("revoked", idData.ipfsHash, idData.createdAt, idData.updatedAt, score, balance);
       } else {
         userIsRevoked = false;
         walletStatus.textContent += " · Not Registered";
         registerBtn.textContent  = "⬡ Register on Blockchain";
-        updateDashboardStatus("none");
+        updateDashboardStatus("none", null, "0", "0", score, balance);
       }
     }
   } catch (err) {
@@ -317,6 +324,35 @@ async function checkExistingIdentity() {
     console.error("checkExistingIdentity error:", parseRevertReason(err));
   }
 }
+
+async function fetchReputation(address) {
+  try {
+    // Try backend first
+    const response = await fetch(`${BACKEND_URL}/score/${address}`);
+    if (response.ok) {
+        const data = await response.json();
+        return data.score;
+    }
+    // Fallback to direct contract call
+    return await contract.methods.getTrustScore(address).call();
+  } catch (e) {
+    console.error("Score fetch error:", e);
+    return 0;
+  }
+}
+
+async function fetchTokenBalance(address) {
+  if (!window.tokenContract) return "0";
+  try {
+    const balance = await window.tokenContract.methods.balanceOf(address).call();
+    const decimals = await window.tokenContract.methods.decimals().call();
+    return (Number(balance) / (10 ** Number(decimals))).toFixed(2);
+  } catch (e) {
+    console.error("Balance fetch error:", e);
+    return "0";
+  }
+}
+
 
 async function loadContractData() {
   if (!IS_DEPLOYED) {
@@ -345,7 +381,7 @@ function disconnectUI() {
 
 // ── Dashboard Handlers ─────────────────────────────────────────
 
-function updateDashboardStatus(status, cid = "", created = "0", updated = "0") {
+function updateDashboardStatus(status, cid = "", created = "0", updated = "0", score = 0, balance = "0") {
   dStatusBadge.className = "id-badge";
   if (status === "active") {
     dStatusBadge.classList.add("status-active");
@@ -368,19 +404,39 @@ function updateDashboardStatus(status, cid = "", created = "0", updated = "0") {
   if (cid) dCid.textContent = cid;
   if (created !== "0") dCreated.textContent = tsToDate(created);
   if (updated !== "0") dUpdated.textContent = tsToDate(updated);
+  
+  document.getElementById("dashScore").textContent = `${score}/100`;
+  document.getElementById("dashBalance").textContent = `${balance} DID`;
 }
 
-viewBtn.addEventListener("click", async () => {
-  if (!requireNetwork() || !userHasIdentity) return;
-  setBusy(viewBtn);
 
+/**
+ * Fetches the specific IPFS profile and updates the dashboard name/email fields.
+ * If cid is provided, it uses it; otherwise it fetches the latest from the contract.
+ */
+async function refreshProfileDisplay(forcedCid = null) {
+  if (!userHasIdentity && !forcedCid) return;
+  
   try {
+    let cid = forcedCid;
+    
+    // Always fetch latest metadata from contract to keep timestamps accurate
     const idData = await contract.methods.getIdentity(userAccount).call();
-    const cid = idData.ipfsHash;
-    updateDashboardStatus(idData.isActive ? "active" : "revoked", cid, idData.createdAt, idData.updatedAt);
+    if (!cid) cid = idData.ipfsHash;
+    
+    const createdAt = idData.createdAt;
+    const updatedAt = idData.updatedAt;
+    const isActive  = idData.isActive;
+
+    // Refresh Score & Balance
+    const score = await fetchReputation(userAccount);
+    const balance = await fetchTokenBalance(userAccount);
+    
+    // Update metadata
+    updateDashboardStatus(isActive ? "active" : "revoked", cid, createdAt, updatedAt, score, balance);
     
     if (cid) {
-      const profile = await fetchFromPinata(cid);
+      const profile = await fetchFromIPFS(cid);
       if (profile) {
         dName.textContent = profile.name || "—";
         dEmail.textContent = profile.email || "—";
@@ -388,14 +444,29 @@ viewBtn.addEventListener("click", async () => {
         dId.textContent = profile.studentId || "—";
       } else {
         dName.innerHTML = `<span class="empty">Unable to load IPFS data</span>`;
+        // Clear old fields if load fails
+        dEmail.textContent = "—"; dCollege.textContent = "—"; dId.textContent = "—";
       }
     }
+  } catch (err) {
+    console.error("refreshProfileDisplay error:", err);
+    throw err;
+  }
+}
+
+viewBtn.addEventListener("click", async () => {
+  if (!requireNetwork() || !userHasIdentity) return;
+  setBusy(viewBtn);
+
+  try {
+    await refreshProfileDisplay();
   } catch (err) {
     showToast("Error viewing identity: " + parseRevertReason(err));
   }
   clearBusy(viewBtn);
   viewBtn.disabled = false;
 });
+
 
 revokeBtn.addEventListener("click", async () => {
   if (!requireNetwork() || !userHasIdentity || userIsRevoked) return;
@@ -443,15 +514,16 @@ registerBtn.addEventListener("click", async () => {
 
   setStatus(registerStatus, "⏳ Generating IPFS hash of your profile…", "loading");
 
-  // Use custom CID or upload to Pinata
+  // Use custom CID or upload to IPFS via backend
   if (!ipfs) {
     try {
-      ipfs = await uploadToPinata(profile);
+      ipfs = await uploadToIPFS(profile);
     } catch (e) {
       setStatus(registerStatus, "❌ IPFS Upload Failed: " + e.message, "error");
       return;
     }
   }
+
 
   setStatus(registerStatus,
     `📦 IPFS Hash: <code style="word-break:break-all;color:var(--accent)">${ipfs}</code><br/>⏳ Confirm the transaction in MetaMask…`,
@@ -491,7 +563,11 @@ registerBtn.addEventListener("click", async () => {
       "success"
     );
     showToast("✓ Identity successfully recorded on Sepolia!");
-    await checkExistingIdentity(); // Refresh dashboard
+    
+    // CRITICAL FIX: Instead of just checking on-chain state, 
+    // automatically refresh the profile display with the NEW CID.
+    await checkExistingIdentity(); 
+    await refreshProfileDisplay(ipfs); // use the CID we just uploaded
     await loadContractData();
 
   } catch (err) {
@@ -546,9 +622,9 @@ lookupBtn.addEventListener("click", async () => {
 
     // Safe to call getIdentity — address has an active identity
     const result = await contract.methods.getIdentity(addr).call();
-    const [hash, createdAt, updatedAt, isActive, version] = result;
+    const { ipfsHash, createdAt, updatedAt, isActive, version } = result;
 
-    document.getElementById("rHash").textContent    = hash || "(none)";
+    document.getElementById("rHash").textContent    = ipfsHash || "(none)";
     document.getElementById("rCreated").textContent = tsToDate(createdAt);
     document.getElementById("rUpdated").textContent = tsToDate(updatedAt);
     document.getElementById("rVersion").textContent = version?.toString() || "—";

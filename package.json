@@ -1,0 +1,28 @@
+{
+  "name": "did-identity",
+  "version": "1.0.0",
+  "description": "> Built on Ethereum (Sepolia) · IPFS · Node.js · Web3.js · MetaMask",
+  "main": "index.js",
+  "scripts": {
+    "backend": "cd backend && npm start",
+    "frontend": "python -m http.server 8081 --directory frontend",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "install-all": "npm install && cd backend && npm install",
+    "start": "node backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ashishghadigaonkar/Blockchain-did-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ashishghadigaonkar/Blockchain-did-project/issues"
+  },
+  "homepage": "https://github.com/ashishghadigaonkar/Blockchain-did-project#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

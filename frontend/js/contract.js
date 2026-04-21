@@ -9,8 +9,11 @@
 // ── Set to true ONLY after you have deployed DIDRegistry.sol ──
 const IS_DEPLOYED = true;
 
-const CONTRACT_ADDRESS = "Your_address";
+const CONTRACT_ADDRESS = "0xa0ba834Ddafa2d804eE01e418b40bB6e10Af53cC";
 //  ↑ Replace with your actual Sepolia deployment address from Remix
+
+// Add your DIDToken address here after deployment
+const TOKEN_CONTRACT_ADDRESS = "0xa91570f7966155F44639e9eD9f48984464df5B98";
 
 const CONTRACT_ABI = [
   // registerIdentity(string ipfsHash)
@@ -42,12 +45,21 @@ const CONTRACT_ABI = [
     "inputs": [{ "internalType": "address", "name": "userAddress", "type": "address" }],
     "name": "getIdentity",
     "outputs": [
-      { "internalType": "string",  "name": "ipfsHash",  "type": "string"  },
+      { "internalType": "string", "name": "ipfsHash", "type": "string" },
       { "internalType": "uint256", "name": "createdAt", "type": "uint256" },
       { "internalType": "uint256", "name": "updatedAt", "type": "uint256" },
-      { "internalType": "bool",    "name": "isActive",  "type": "bool"    },
-      { "internalType": "uint256", "name": "version",   "type": "uint256" }
+      { "internalType": "bool", "name": "isActive", "type": "bool" },
+      { "internalType": "uint256", "name": "version", "type": "uint256" },
+      { "internalType": "uint256", "name": "revocationCount", "type": "uint256" }
     ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  // getTrustScore(address)
+  {
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
+    "name": "getTrustScore",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -71,8 +83,8 @@ const CONTRACT_ABI = [
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": true,  "internalType": "address", "name": "owner",     "type": "address" },
-      { "indexed": false, "internalType": "string",  "name": "ipfsHash",  "type": "string"  },
+      { "indexed": true, "internalType": "address", "name": "owner", "type": "address" },
+      { "indexed": false, "internalType": "string", "name": "ipfsHash", "type": "string" },
       { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
     ],
     "name": "IdentityRegistered",
@@ -81,9 +93,9 @@ const CONTRACT_ABI = [
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": true,  "internalType": "address", "name": "owner",       "type": "address" },
-      { "indexed": false, "internalType": "string",  "name": "newIpfsHash", "type": "string"  },
-      { "indexed": false, "internalType": "uint256", "name": "timestamp",   "type": "uint256" }
+      { "indexed": true, "internalType": "address", "name": "owner", "type": "address" },
+      { "indexed": false, "internalType": "string", "name": "newIpfsHash", "type": "string" },
+      { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
     ],
     "name": "IdentityUpdated",
     "type": "event"
@@ -91,11 +103,28 @@ const CONTRACT_ABI = [
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": true,  "internalType": "address", "name": "owner",     "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "owner", "type": "address" },
       { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
     ],
     "name": "IdentityRevoked",
     "type": "event"
+  }
+];
+
+const TOKEN_ABI = [
+  {
+    "constant": true,
+    "inputs": [{ "name": "_owner", "type": "address" }],
+    "name": "balanceOf",
+    "outputs": [{ "name": "balance", "type": "uint256" }],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [{ "name": "", "type": "uint8" }],
+    "type": "function"
   }
 ];
 
