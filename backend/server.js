@@ -14,7 +14,20 @@ app.use(express.json());
 
 // Serve static frontend files
 const path = require('path');
-app.use(express.static(path.join(__dirname, '../frontend')));
+const frontendPath = path.join(__dirname, '../frontend');
+app.use(express.static(frontendPath));
+
+// Debug route to verify file structure on Render
+app.get('/debug-files', (req, res) => {
+    const fs = require('fs');
+    try {
+        const files = fs.readdirSync(frontendPath);
+        const jsFiles = fs.readdirSync(path.join(frontendPath, 'js'));
+        res.json({ frontendPath, files, jsFiles, cwd: process.cwd() });
+    } catch (err) {
+        res.status(500).json({ error: err.message, frontendPath, cwd: process.cwd() });
+    }
+});
 
 // Web3 Setup
 const web3 = new Web3(process.env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com');
