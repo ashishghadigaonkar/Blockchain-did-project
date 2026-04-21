@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authorize — DIDChain</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/did-button.css">
+  <style>
+    .auth-container {
+      max-width: 480px;
+      margin: 100px auto;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      text-align: center;
+    }
+    .app-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--did-primary);
+      border-radius: 16px;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: white;
+    }
+    .auth-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .auth-desc {
+      color: var(--text-dim);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    .permission-list {
+      text-align: left;
+      background: rgba(0,0,0,0.2);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 32px;
+    }
+    .permission-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .permission-item:last-child { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <div class="auth-container">
+    <div class="app-icon">⬡</div>
+    <h1 class="auth-title">Sign in with DIDChain</h1>
+    <p class="auth-desc">
+      An external application is requesting to verify your identity and trust score.
+    </p>
+
+    <div class="permission-list">
+      <div class="permission-item">✅ Verify your Ethereum address</div>
+      <div class="permission-item">✅ Read your on-chain Trust Score</div>
+      <div class="permission-item">✅ Verify your DID registration status</div>
+    </div>
+
+    <button id="authBtn" class="did-connect-button" style="width: 100%;">
+      <span class="did-icon">🦊</span>
+      Confirm with MetaMask
+    </button>
+    
+    <p id="statusMsg" style="margin-top: 20px; font-size: 14px; color: var(--accent);"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.4/dist/web3.min.js"></script>
+  <script>
+    const authBtn = document.getElementById('authBtn');
+    const statusMsg = document.getElementById('statusMsg');
+
+    // Get redirect_uri from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUri = urlParams.get('redirect_uri');
+
+    if (!redirectUri) {
+      statusMsg.textContent = "Error: No redirect_uri provided.";
+      authBtn.disabled = true;
+    }
+
+    authBtn.addEventListener('click', async () => {
+      if (!window.ethereum) {
+        alert("MetaMask not found!");
+        return;
+      }
+
+      try {
+        statusMsg.textContent = "Connecting to wallet...";
+        const web3 = new Web3(window.ethereum);
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0];
+
+        const message = `Sign this message to verify your DID Identity.\n\nNonce: ${Math.floor(Math.random() * 1000000)}`;
+        statusMsg.textContent = "Please sign the message in MetaMask...";
+        
+        const signature = await web3.eth.personal.sign(message, address, "");
+
+        statusMsg.textContent = "Verifying identity on-chain...";
+        
+        // Call our backend to get the JWT
+        const response = await fetch('/authorize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address, signature, message })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          statusMsg.textContent = "Success! Redirecting back...";
+          const finalUrl = new URL(redirectUri);
+          finalUrl.searchParams.set('did_token', result.token);
+          finalUrl.searchParams.set('address', result.address);
+          window.location.href = finalUrl.toString();
+        } else {
+          statusMsg.textContent = "Auth failed: " + (result.error || "Unknown error");
+        }
+
+      } catch (err) {
+        console.error(err);
+        statusMsg.textContent = "Error: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

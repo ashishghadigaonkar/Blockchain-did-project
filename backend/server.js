@@ -4,9 +4,11 @@ const cors = require('cors');
 const axios = require('axios');
 const FormData = require('form-data');
 const { Web3 } = require('web3');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || 'did-chain-secret-key-2024';
 
 // Middleware
 app.use(cors());
@@ -47,6 +49,25 @@ const abi = [
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "userAddress",
+                "type": "address"
+            }
+        ],
+        "name": "hasIdentity",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
             }
         ],
         "stateMutability": "view",
@@ -126,6 +147,73 @@ app.get('/score/:address', async (req, res) => {
     } catch (error) {
         console.error('Trust Score Fetch Error:', error.message);
         res.status(500).json({ success: false, error: 'Failed to fetch trust score' });
+    }
+});
+
+/**
+ * @route GET /authorize
+ * @desc Serve the authorization page
+ */
+app.get('/authorize', (req, res) => {
+    const file = path.resolve(frontendPath, 'authorize.html');
+    res.sendFile(file, (err) => {
+        if (err) {
+            console.error('Error sending authorize.html:', err);
+            res.status(500).send('Could not load authorization page. Please ensure frontend/authorize.html exists.');
+        }
+    });
+});
+
+/**
+ * @route POST /authorize
+ * @desc Generate a JWT for a verified DID user
+ */
+app.post('/authorize', async (req, res) => {
+    try {
+        const { address, signature, message } = req.body;
+        
+        // 1. Verify Signature (EIP-191 / SIWE style)
+        const recoveredAddress = web3.eth.accounts.recover(message, signature);
+        if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+            return res.status(401).json({ success: false, error: 'Invalid signature' });
+        }
+
+        // 2. Check On-chain Identity
+        const hasIdentity = await contract.methods.hasIdentity(address).call();
+        if (!hasIdentity) {
+            return res.status(403).json({ success: false, error: 'No active DID found for this address' });
+        }
+
+        // 3. Fetch Reputation Score
+        const score = await contract.methods.getTrustScore(address).call();
+
+        // 4. Create DID Token (JWT)
+        const token = jwt.sign({
+            sub: address,
+            score: Number(score),
+            iat: Math.floor(Date.now() / 1000)
+        }, JWT_SECRET, { expiresIn: '1h' });
+
+        res.json({ success: true, token, address, score: Number(score) });
+    } catch (error) {
+        console.error('Auth Error:', error.message);
+        res.status(500).json({ success: false, error: 'Authentication failed' });
+    }
+});
+
+/**
+ * @route POST /verify-token
+ * @desc Verify a DID Token sent by an external app
+ */
+app.post('/verify-token', (req, res) => {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token is required' });
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        res.json({ valid: true, data: decoded });
+    } catch (err) {
+        res.status(401).json({ valid: false, error: 'Invalid or expired token' });
     }
 });
 

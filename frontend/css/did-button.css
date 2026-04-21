@@ -1,0 +1,57 @@
+/* 
+  did-button.css
+  Prive / Premium styles for the "Sign In with DIDChain" button
+*/
+
+:root {
+  --did-primary: #6366f1;
+  --did-hover: #4f46e5;
+  --did-text: #ffffff;
+}
+
+.did-connect-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--did-primary);
+  color: var(--did-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  gap: 10px;
+}
+
+.did-connect-button:hover {
+  background: var(--did-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.did-connect-button:active {
+  transform: translateY(0);
+}
+
+.did-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Dark mode variant */
+.did-button-dark {
+  background: #111827;
+}
+.did-button-dark:hover {
+  background: #1f2937;
+}

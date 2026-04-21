@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Successful — Demo</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .success-container {
+      max-width: 600px;
+      margin: 100px auto;
+      padding: 40px;
+      background: white;
+      color: #333;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .data-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 24px;
+      text-align: left;
+    }
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+    }
+    .data-label { color: #6b7280; }
+    .data-value { color: #111827; font-weight: 700; word-break: break-all; }
+    .score-high { color: #059669; }
+    .score-low { color: #dc2626; }
+  </style>
+</head>
+<body style="background: #ecfdf5;">
+  <div class="success-container">
+    <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
+    <h1 style="font-size: 28px; font-weight: 800; color: #064e3b; margin-bottom: 10px;">Login Successful!</h1>
+    <p style="color: #047857;">The Demo App has successfully verified your identity through DIDChain.</p>
+
+    <div id="loading" style="margin-top: 20px;">Verifying token with secure backend...</div>
+
+    <div id="resultCard" class="data-card" style="display: none;">
+      <div class="data-row">
+        <span class="data-label">Verified Address</span>
+        <span id="userAddress" class="data-value">—</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Identity Trust Score</span>
+        <span id="userScore" class="data-value">—</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Token Status</span>
+        <span class="data-value" style="color: #059669;">Valid & Signed</span>
+      </div>
+    </div>
+
+    <button onclick="window.location.href='/demo/index.html'" class="btn-secondary" style="margin-top: 30px; background: #064e3b; color: white;">
+      Back to Demo App
+    </button>
+  </div>
+
+  <script>
+    async function verifyLogin() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('did_token');
+      const loadingEl = document.getElementById('loading');
+      const resultCard = document.getElementById('resultCard');
+
+      if (!token) {
+        loadingEl.innerHTML = "❌ No token found in URL.";
+        loadingEl.style.color = "red";
+        return;
+      }
+
+      try {
+        // Now we call the backend to verify the token is real
+        const response = await fetch('/verify-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+
+        const result = await response.json();
+
+        if (result.valid) {
+          loadingEl.style.display = 'none';
+          resultCard.style.display = 'block';
+          
+          document.getElementById('userAddress').textContent = result.data.sub;
+          document.getElementById('userScore').textContent = result.data.score + "/100";
+          
+          if (result.data.score >= 70) {
+            document.getElementById('userScore').classList.add('score-high');
+          } else {
+            document.getElementById('userScore').classList.add('score-low');
+          }
+        } else {
+          loadingEl.innerHTML = "❌ Token Invalid: " + result.error;
+          loadingEl.style.color = "red";
+        }
+      } catch (err) {
+        loadingEl.innerHTML = "❌ Connection Error: " + err.message;
+        loadingEl.style.color = "red";
+      }
+    }
+
+    window.onload = verifyLogin;
+  </script>
+</body>
+</html>
