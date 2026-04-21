@@ -76,13 +76,8 @@ function toggleSkeletons(parentIds, isLoading) {
     if (!el) return;
     if (isLoading) {
       el.classList.add("loading-data");
-      // For the badge specifically which uses visibility check
-      const skel = el.querySelector(".skeleton-badge");
-      if (skel) skel.style.visibility = "visible";
     } else {
       el.classList.remove("loading-data");
-      const skel = el.querySelector(".skeleton-badge");
-      if (skel) skel.style.visibility = "hidden";
     }
   });
 }
@@ -120,7 +115,35 @@ function parseRevertReason(err) {
 }
 
 // ── Backend Configuration ──────────────────────────────────────
-const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5000' ? "http://localhost:5000" : "";
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const BACKEND_URL = IS_LOCAL ? "http://localhost:5000" : "https://did-blockchain.onrender.com";
+
+// ── System Boot Logic ──
+async function initBoot() {
+  const splash = document.getElementById('systemSplash');
+  const bootStatus = splash.querySelector('.boot-status');
+  
+  try {
+    // Attempt to ping backend health endpoint
+    const resp = await fetch(`${BACKEND_URL}/health`);
+    if (resp.ok) {
+      bootStatus.textContent = "SYSTEM ONLINE";
+      setTimeout(() => {
+        splash.classList.add('fade-out');
+      }, 600);
+    } else {
+      throw new Error("Backend unreachable");
+    }
+  } catch (err) {
+    console.warn("Retrying backend connection...");
+    bootStatus.textContent = "WAKING UP NODE...";
+    // Retry every 2 seconds until Render wakes up
+    setTimeout(initBoot, 2000);
+  }
+}
+
+// Start boot check
+window.addEventListener('DOMContentLoaded', initBoot);
 
 // ── Upload JSON to IPFS via Backend Proxy ──────────────────────
 async function uploadToIPFS(profileData) {

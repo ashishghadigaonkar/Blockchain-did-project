@@ -450,6 +450,7 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
+  display: none; /* Hide by default */
 }
 
 @keyframes shimmer {
@@ -475,5 +476,75 @@ body {
 
 /* Hide content when loading */
 .loading-data > * { visibility: hidden !important; }
-.loading-data .skeleton { visibility: visible !important; position: absolute; inset: 0; }
+.loading-data .skeleton { display: block !important; visibility: visible !important; position: absolute; inset: 0; }
 .id-field.loading-data { position: relative; }
+
+/* ── System Booting Splash ── */
+#systemSplash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  transition: opacity 0.8s ease, visibility 0.8s;
+}
+
+#systemSplash.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.splash-logo {
+  font-size: 4rem;
+  color: var(--accent);
+  filter: drop-shadow(0 0 20px rgba(0,229,255,0.4));
+  animation: pulseLogo 2s infinite ease-in-out;
+}
+
+@keyframes pulseLogo {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.boot-text {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.boot-status {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.boot-progress {
+  width: 240px;
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
+
+.boot-bar {
+  position: absolute;
+  height: 100%;
+  width: 40%;
+  background: var(--accent);
+  box-shadow: 0 0 15px var(--accent);
+  border-radius: 99px;
+  animation: bootSlide 2s infinite linear;
+}
+
+@keyframes bootSlide {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}

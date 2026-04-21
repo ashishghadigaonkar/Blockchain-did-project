@@ -14,6 +14,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'did-chain-secret-key-2024';
 app.use(cors());
 app.use(express.json());
 
+/**
+ * @route GET /health
+ * @desc Keep-alive and boot-check endpoint
+ */
+app.get('/health', (req, res) => {
+    res.json({ status: 'online', timestamp: Date.now() });
+});
+
 // Serve static frontend files
 const path = require('path');
 const frontendPath = path.join(__dirname, '../frontend');
@@ -227,4 +235,15 @@ app.post('/verify-token', (req, res) => {
 
 app.listen(port, () => {
     console.log(`Backend server running at http://localhost:${port}`);
+    
+    // Self-Wake Heartbeat (Ping itself every 10 minutes to stay awake on Render)
+    const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
+    setInterval(async () => {
+        try {
+            await axios.get(`${RENDER_URL}/health`);
+            console.log('Heartbeat: Self-ping successful');
+        } catch (err) {
+            console.error('Heartbeat: Self-ping failed', err.message);
+        }
+    }, 10 * 60 * 1000); // 10 minutes
 });
